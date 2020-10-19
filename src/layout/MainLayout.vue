@@ -43,6 +43,7 @@ export default {
     }
   },
   mounted() {
+    console.log(this.$route.path)
     if (this.$route.name) {
       this.current = [this.$route.name]
     } else {
