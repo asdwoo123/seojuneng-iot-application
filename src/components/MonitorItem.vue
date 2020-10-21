@@ -3,10 +3,6 @@
     <a-col :xs="24" :sm="12" :md="8" :lg="6" :key="station.stationName" v-for="station in stations" style="padding-bottom: 16px;">
       <a-card :title="station.stationName">
         <div slot="extra" :class="(station.state) ? 'led-green' : 'led-red'" />
-        <p class="flex between" style="padding-bottom: 8px;">
-          <span class="key-box">barcode</span>
-          <span class="val-box">{{ station.productId }}</span>
-        </p>
         <p :key="i" v-for="(v, i) in station.data" class="flex between" style="padding-bottom: 8px;">
           <span class="key-box">{{ v.dataName }}</span>
           <span class="val-box">{{ v.dataValue }}</span>
