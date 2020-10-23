@@ -13,12 +13,10 @@
     </a-button-group>
     <div style="clear: both;"/>
     <div>
-      <Container @drop="projectDrop($event)">
-        <a-row type="flex" :gutter="16">
-          <a-col :xs="24" :sm="12" :md="8" :lg="6" v-for="(project, projectIndex) in projects" :key="projectIndex">
-            <Draggable style="cursor: pointer; margin-bottom: 16px;">
+      <Container @drop="projectDrop">
+        <Draggable style="cursor: pointer; margin-bottom: 16px;" v-for="(project, projectIndex) in projects" :key="projectIndex">
               <a-card :body-style="{padding: '10px'}">
-                <div class="flex between center-v" style="padding-bottom: 20px; border-bottom: 1px solid #e8e8e8;">
+                <div class="flex between center-h" style="padding-bottom: 20px;">
                   <InputContenteditable v-model="project.projectName"/>
                   <a-button-group>
                     <a-button @click="addStation(projectIndex)">
@@ -32,7 +30,7 @@
                 <Container @drop="stationDrop(projectIndex, $event)">
                   <Draggable v-for="(station, stationIndex) in project.stations" :key="stationIndex"
                              style="cursor: pointer; margin-bottom: 8px;">
-                    <div class="flex between center-v" style="border: 1px solid black;">
+                    <div class="flex between center-v" style="box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08); padding: 5px;">
                       <span>{{ station.stationName }}</span>
                       <a-button-group>
                         <a-button @click="stationModalOpen(projectIndex, stationIndex)">
@@ -46,9 +44,7 @@
                   </Draggable>
                 </Container>
               </a-card>
-            </Draggable>
-          </a-col>
-        </a-row>
+        </Draggable>
       </Container>
     </div>
     <!--여기서 부터 모달창-->
@@ -104,13 +100,13 @@
           </div>
         </div>
 
-        <a-row :gutter="8" :key="si" style="margin-bottom: 8px;" v-for="(s, si) in plcInfo[plcInfo.protocol].data">
-          <a-col :span="10" :key="key" v-for="[key] in Object.entries(s)">
+        <div class="flex" :key="si" style="margin-bottom: 8px; align-items: flex-end;" v-for="(s, si) in plcInfo[plcInfo.protocol].data">
+          <div style="margin-right: 8px;" :key="key" v-for="[key] in Object.entries(s)">
             <div class="field-label">{{ key }}</div>
             <a-input style="margin-bottom: 8px;" v-model="s[key]"/>
-          </a-col>
-          <a-button type="danger" icon="delete" @click="removeData(si)" />
-        </a-row>
+          </div>
+          <a-button style="margin-bottom: 8px;" type="danger" icon="delete" @click="removeData(si)" />
+        </div>
       </template>
     </a-modal>
   </a-layout-content>
@@ -180,19 +176,22 @@ export default {
     connectStation() {
       this.searchLoading = true
 
-      axios.get('http://' + this.station.stationUrl + '/plcInfo', {
+      axios.post('http://' + this.station.stationUrl + '/getPlcInfo', {
         password: this.password
       }).then(res => {
         this.plcInfo = cloneDeep(res.data.plcInfo)
 
         this.searchLoading = false
-        this.connectSuccess = true
+
+        if (res.data.result) {
+          this.connectSuccess = true
+        }
       }).catch(() => this.searchLoading = false)
     },
     async saveStation() {
       this.projects[this.projectIndex].stations[this.stationIndex] = this.station
       if (this.connectSuccess) {
-        const res = await axios.post('http://' + this.station.stationUrl + '/plcInfo', {
+        const res = await axios.post('http://' + this.station.stationUrl + '/setPlcInfo', {
           password: this.password
         })
         const {result} = res.data
@@ -265,7 +264,5 @@ export default {
   opacity: 0;
 }
 
-.field-label {
-  margin-bottom: 5px;
-}
+
 </style>

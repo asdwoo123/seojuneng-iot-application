@@ -1,10 +1,11 @@
 <template>
   <a-layout style="height: 100%;">
-    <a-layout-header style="padding: 0 16px; background-color: #0677ff;">
+    <a-layout-header style="padding: 0 16px; background-color: #fff;">
       <a-icon type="menu" v-if="isMobile"
               @click="showDrawer"
-              style="color: white; float: left; line-height: 64px; font-size: 20px;"/>
-      <a-menu @click="onModeChange" mode="horizontal" v-else style="display: inline-block; line-height: 64px; background-color: #0677ff;" v-model="current">
+              style="color: #bc20e7; float: left; line-height: 64px; font-size: 20px;"/>
+      <a-menu @click="onModeChange" mode="horizontal" v-else
+              style="display: inline-block; float: left; line-height: 64px; background-color: #fff;" v-model="current">
         <template v-for="routeName in routeNames">
           <a-menu-item :key="routeName">
             {{ routeName }}
@@ -43,11 +44,13 @@ export default {
     }
   },
   mounted() {
-    if (this.$route.name) {
-      this.current = [this.$route.name]
-    } else {
-      this.$router.push('/monitor')
-    }
+    setTimeout(() => {
+      if (this.$route.name) {
+        this.current = [this.$route.name]
+      } else {
+        this.$router.push('/monitor')
+      }
+    }, 1000)
   },
   methods: {
     showDrawer() {
@@ -63,7 +66,7 @@ export default {
         this.drawerVisible = false
       }
     },
-    onModeChange({ key }) {
+    onModeChange({key}) {
       if (this.$route.path === `/${key.toLowerCase()}`) return
       this.$router.push(`/${key.toLowerCase()}`)
     }

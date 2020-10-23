@@ -1,5 +1,5 @@
 <template>
-  <a-row type="flex" :gutter="16" style="background-color: beige">
+  <a-row type="flex" :gutter="16">
     <a-col :xs="24" :sm="12" :md="8" :lg="6" :key="station.stationName" v-for="station in stations" style="padding-bottom: 16px;">
       <a-card :title="station.stationName">
         <div slot="extra" :class="(station.state) ? 'led-green' : 'led-red'" />

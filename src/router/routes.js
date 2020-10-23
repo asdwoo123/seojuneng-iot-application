@@ -13,10 +13,10 @@ export default [
         path: '/editor',
         name: 'Editor',
         component: () => import('../views/Editor')
-    },
+    }/*,
     {
         path: '/alarm',
         name: 'Alarm',
         component: () => import('../views/Alarm')
-    }
+    }*/
 ]

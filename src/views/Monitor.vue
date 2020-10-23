@@ -1,5 +1,5 @@
 <template>
-  <a-layout-content style="padding: 24px; background-color: beige;">
+  <a-layout-content style="padding: 24px;">
     <a-button-group v-if="projects.length > 1" style="margin-bottom: 12px;">
       <a-button :type="(currentProject === project.projectName) ? 'primary' : null"
                 v-for="(project, projectIndex) in projects" :key="projectIndex"
@@ -59,7 +59,7 @@ export default {
         })
 
         socket.on('data', (data) => {
-          this.stations[projectIndex][stationIndex].data = data
+          this.stations[projectIndex][stationIndex].data = data.data
           this.$forceUpdate()
         })
       })
