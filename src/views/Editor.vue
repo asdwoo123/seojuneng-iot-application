@@ -14,99 +14,132 @@
     <div style="clear: both;"/>
     <div>
       <Container @drop="projectDrop($event)">
-        <Draggable v-for="(project, projectIndex) in projects" :key="projectIndex"
-                   style="cursor: pointer; margin-bottom: 16px;">
-          <a-card :title="project.projectName" :body-style="{padding: '10px'}">
-            <a-button-group slot="extra">
-              <a-button @click="addStation(projectIndex)">
-                Add station
-              </a-button>
-              <a-button @click="removeProject(projectIndex)">
-                Delete
-              </a-button>
-            </a-button-group>
-            <Container @drop="stationDrop(projectIndex, $event)">
-              <Draggable v-for="(station, stationIndex) in project.stations" :key="stationIndex"
-                         style="cursor: pointer; margin-bottom: 8px;">
-                <div class="flex between center-v" style="border: 1px solid black;">
-                  <span>{{ station.stationName }}</span>
+        <a-row type="flex" :gutter="16">
+          <a-col :xs="24" :sm="12" :md="8" :lg="6" v-for="(project, projectIndex) in projects" :key="projectIndex">
+            <Draggable style="cursor: pointer; margin-bottom: 16px;">
+              <a-card :body-style="{padding: '10px'}">
+                <div class="flex between center-v" style="padding-bottom: 20px; border-bottom: 1px solid #e8e8e8;">
+                  <InputContenteditable v-model="project.projectName"/>
                   <a-button-group>
-                    <a-button @click="stationModalOpen(projectIndex, stationIndex)">
-                      Detail
+                    <a-button @click="addStation(projectIndex)">
+                      Add station
                     </a-button>
-                    <a-button @click="removeStation(projectIndex, stationIndex)">
+                    <a-button @click="removeProject(projectIndex)">
                       Delete
                     </a-button>
                   </a-button-group>
                 </div>
-              </Draggable>
-            </Container>
-          </a-card>
-        </Draggable>
+                <Container @drop="stationDrop(projectIndex, $event)">
+                  <Draggable v-for="(station, stationIndex) in project.stations" :key="stationIndex"
+                             style="cursor: pointer; margin-bottom: 8px;">
+                    <div class="flex between center-v" style="border: 1px solid black;">
+                      <span>{{ station.stationName }}</span>
+                      <a-button-group>
+                        <a-button @click="stationModalOpen(projectIndex, stationIndex)">
+                          Detail
+                        </a-button>
+                        <a-button @click="removeStation(projectIndex, stationIndex)">
+                          Delete
+                        </a-button>
+                      </a-button-group>
+                    </div>
+                  </Draggable>
+                </Container>
+              </a-card>
+            </Draggable>
+          </a-col>
+        </a-row>
       </Container>
     </div>
-    <a-modal :visible="stationVisible" @cancel="stationModalClose">
+    <!--여기서 부터 모달창-->
+    <a-modal :visible="stationVisible" @cancel="stationModalClose" @ok="saveStation">
       <div class="input-wrapper" style="margin-top: 20px;">
-        <a-input addon-before="name" v-model="station.stationName"/>
-      </div>
-      <div class="input-wrapper">
-        <a-input-search addon-before="url" v-model="station.stationUrl" @search="connectStation">
-          <a-button slot="enterButton" :loading="searchLoading">connect</a-button>
-        </a-input-search>
-      </div>
-
-      <div class="input-wrapper">
-        <a-button>Modify</a-button>
-        <a-select :default-value="protocolList[0]">
-          <template v-for="protocol in protocolList">
-            <a-select-option :key="protocol" :value="protocol">
-              {{ protocol }}
-            </a-select-option>
-          </template>
-        </a-select>
-      </div>
-
-      <div class="input-wrapper">
-        <div class="flex" :key="si" v-for="(s, si) in stationData">
-          sdasd
-<!--          <template v-for="[key, value] in Object.entries(s)">
-&lt;!&ndash;            <v-input :addon-before="key" :key="key" v-if="typeof value === 'string'" v-model="s[key]" />&ndash;&gt;
-            {{ key }}
-          </template>-->
+        <div style="margin-right: 8px;">
+            <div class="field-label">name</div>
+          <a-input v-model="station.stationName"/>
+        </div>
+        <div>
+          <div class="field-label">url</div>
+          <a-input v-model="station.stationUrl"/>
         </div>
       </div>
+
+      <div class="input-wrapper">
+        <div>
+          <div class="field-label">password</div>
+          <dis class="flex">
+            <a-input-password style="margin-right: 8px;" v-model="password"/>
+            <a-button @click="connectStation">connect</a-button>
+          </dis>
+        </div>
+      </div>
+
+      <template v-if="connectSuccess">
+        <div class="input-wrapper">
+          <div>
+            <div class="field-label">change password</div>
+          <a-input-password v-model="changePwd"/>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <a-select :default-value="plcInfo.protocol">
+            <template v-for="protoc in plcInfo.protocolList">
+              <a-select-option :key="protoc" :value="protoc">
+                {{ protoc }}
+              </a-select-option>
+            </template>
+          </a-select>
+          <a-button type="primary" @click="addData">Add data</a-button>
+        </div>
+
+        <div class="input-wrapper">
+          <div style="margin-right: 8px;">
+            <div class="field-label">plc url</div>
+            <a-input style="margin-right: 8px;" v-model="plcInfo[plcInfo.protocol].url"/>
+          </div>
+          <div>
+            <div class="field-label">product id</div>
+            <a-input v-model="plcInfo[plcInfo.protocol].productId"/>
+          </div>
+        </div>
+
+        <a-row :gutter="8" :key="si" style="margin-bottom: 8px;" v-for="(s, si) in plcInfo[plcInfo.protocol].data">
+          <a-col :span="10" :key="key" v-for="[key] in Object.entries(s)">
+            <div class="field-label">{{ key }}</div>
+            <a-input style="margin-bottom: 8px;" v-model="s[key]"/>
+          </a-col>
+          <a-button type="danger" icon="delete" @click="removeData(si)" />
+        </a-row>
+      </template>
     </a-modal>
   </a-layout-content>
 </template>
 
 <script>
 import {Container, Draggable} from 'vue-smooth-dnd'
+import InputContenteditable from 'vue-input-contenteditable'
 import axios from 'axios'
-import {cloneDeep, range} from 'lodash'
+import {cloneDeep} from 'lodash'
 import {getDB, setDB} from '@/database'
 
 export default {
   name: "Editor",
   components: {
     Container,
-    Draggable
+    Draggable,
+    InputContenteditable
   },
   data: () => ({
     projects: getDB('projects'),
+    password: '',
+    changePwd: '',
     station: {
       stationName: '',
       stationUrl: ''
     },
-    stationData: [
-      {
-        dataName: 'data1',
-        nodeId: 'nodeId1'
-      }
-    ],
-    changeAuth: false,
-    protocolList: [
-      'OPCUA'
-    ],
+    connectSuccess: false,
+    plcInfo: {},
     projectIndex: 0,
     stationIndex: 0,
     stationVisible: false,
@@ -128,7 +161,7 @@ export default {
       })
     },
     saveProjects() {
-      /*setDB('projects', this.projects)*/
+      setDB('projects', this.projects)
       this.$toast.center('Save project')
     },
     removeProject(projectIndex) {
@@ -145,18 +178,28 @@ export default {
       this.$forceUpdate()
     },
     connectStation() {
-      console.log('loading...')
       this.searchLoading = true
 
-      setTimeout(() => {
+      axios.get('http://' + this.station.stationUrl + '/plcInfo', {
+        password: this.password
+      }).then(res => {
+        this.plcInfo = cloneDeep(res.data.plcInfo)
+
         this.searchLoading = false
         this.connectSuccess = true
-      }, 2000)
-      /*axios.get('/stationInfo')
-          .then(res => {
-            const {stationInfo} = res.data
-            this.stationInfo = stationInfo
-          })*/
+      }).catch(() => this.searchLoading = false)
+    },
+    async saveStation() {
+      this.projects[this.projectIndex].stations[this.stationIndex] = this.station
+      if (this.connectSuccess) {
+        const res = await axios.post('http://' + this.station.stationUrl + '/plcInfo', {
+          password: this.password
+        })
+        const {result} = res.data
+        if (result) this.stationVisible = false
+      } else {
+        this.stationVisible = false
+      }
     },
     stationDrop(projectIndex, e) {
       const {removedIndex, addedIndex} = e
@@ -171,12 +214,36 @@ export default {
     stationModalOpen(projectIndex, stationIndex) {
       this.projectIndex = projectIndex
       this.stationIndex = stationIndex
-      this.stationData = []
+      this.plcUrl = null
+      this.protocolList = []
+      this.protocol = ''
+      this.stationInfo = []
       this.station = cloneDeep(this.projects[projectIndex].stations[stationIndex])
       this.stationVisible = true
     },
     stationModalClose() {
       this.stationVisible = false
+      this.connectSuccess = false
+    },
+    addData() {
+      let plcData
+      switch (this.plcInfo.protocol) {
+        case 'OPCUA':
+          plcData = {
+            dataName: '',
+            nodeId: ''
+          }
+          return
+      }
+
+      if (plcData) {
+        this.plcInfo[this.plcInfo.protocol].data.push(plcData)
+        this.$forceUpdate()
+      }
+    },
+    removeData(dataIndex) {
+      this.plcInfo[this.plcInfo.protocol].data.splice(dataIndex, 1)
+      this.$forceUpdate()
     }
   }
 }
@@ -193,8 +260,12 @@ export default {
   transition: opacity .5s;
 }
 
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */
+.fade-enter, .fade-leave-to
 {
   opacity: 0;
+}
+
+.field-label {
+  margin-bottom: 5px;
 }
 </style>

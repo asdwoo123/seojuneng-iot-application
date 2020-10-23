@@ -21,6 +21,7 @@
     "socket.io-client": "^2.3.1",
     "uninstall": "0.0.0",
     "vue": "^2.6.11",
+    "vue-input-contenteditable": "^1.0.1",
     "vue-router": "^3.2.0",
     "vue-screen-size": "^1.0.1",
     "vue-smooth-dnd": "^0.8.1",

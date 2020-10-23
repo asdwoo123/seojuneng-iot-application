@@ -1,6 +1,6 @@
 <template>
   <a-layout-content style="padding: 24px; background-color: beige;">
-    <a-button-group>
+    <a-button-group v-if="projects.length > 1" style="margin-bottom: 12px;">
       <a-button :type="(currentProject === project.projectName) ? 'primary' : null"
                 v-for="(project, projectIndex) in projects" :key="projectIndex"
                 @click="this.currentProject = project.projectName">
@@ -8,7 +8,7 @@
       </a-button>
     </a-button-group>
     <template v-for="(project, projectIndex) in projects">
-      <MonitorItem :key="projectIndex" :stations="stations" v-if="currentProject === project.projectName" />
+      <MonitorItem :key="projectIndex" :stations="stations[projectIndex]" v-if="currentProject === project.projectName" />
     </template>
   </a-layout-content>
 </template>
@@ -18,15 +18,20 @@ import io from 'socket.io-client'
 import {getDB} from '@/database'
 import MonitorItem from "@/components/MonitorItem";
 
-const projects = getDB('projects')
-
 export default {
   name: "Monitor",
-  components: {MonitorItem},
+  components: {
+    MonitorItem
+  },
   data: () => ({
-    projects,
-    currentProject: projects[0].projectName || '',
-    stations: projects.map(project => {
+    projects: [],
+    currentProject: '',
+    stations: []
+  }),
+  mounted() {
+    this.projects = getDB('projects')
+    this.currentProject = this.projects[0].projectName
+    this.stations = this.projects.map(project => {
       const stations = project.stations
       return stations.map(station => ({
         stationName: station.stationName,
@@ -34,13 +39,12 @@ export default {
         data: []
       }))
     })
-  }),
-  mounted() {
-    projects.forEach((project, projectIndex) => {
+
+    this.projects.forEach((project, projectIndex) => {
       project.stations.forEach((station, stationIndex) => {
         const { stationUrl } = station
 
-        const socket = io(stationUrl, {
+        const socket = io('http://' + stationUrl, {
           path: '/socket.io'
         })
 

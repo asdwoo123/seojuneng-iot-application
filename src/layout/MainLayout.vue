@@ -4,7 +4,7 @@
       <a-icon type="menu" v-if="isMobile"
               @click="showDrawer"
               style="color: white; float: left; line-height: 64px; font-size: 20px;"/>
-      <a-menu @click="onModeChange" mode="horizontal" v-else style="display: inline-block;" v-model="current">
+      <a-menu @click="onModeChange" mode="horizontal" v-else style="display: inline-block; line-height: 64px; background-color: #0677ff;" v-model="current">
         <template v-for="routeName in routeNames">
           <a-menu-item :key="routeName">
             {{ routeName }}
